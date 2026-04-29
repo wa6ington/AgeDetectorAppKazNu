@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import cv2
+import numpy as np
 import threading
 import os
 from src.analyzer import FaceAnalyzer
@@ -218,7 +219,7 @@ class AgeScannerApp:
 
     def _process_image(self, path):
         try:
-            frame = cv2.imread(path)
+            frame = self._read_image_safe(path)
             if frame is None: raise Exception("Не удалось прочитать файл")
             
             # Use analyzer
@@ -227,6 +228,19 @@ class AgeScannerApp:
             self.root.after(0, lambda: self._display_result(annotated, results))
         except Exception as e:
             self.root.after(0, lambda: self._on_error(str(e)))
+
+    def _read_image_safe(self, path):
+        """Read image robustly on Windows paths with non-ASCII characters."""
+        frame = cv2.imread(path)
+        if frame is not None:
+            return frame
+        try:
+            data = np.fromfile(path, dtype=np.uint8)
+            if data.size == 0:
+                return None
+            return cv2.imdecode(data, cv2.IMREAD_COLOR)
+        except Exception:
+            return None
 
     def _display_result(self, frame, results):
         self._last_frame = frame

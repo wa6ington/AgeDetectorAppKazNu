@@ -8,7 +8,9 @@ def get_resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".")
+        # Use project-root-relative path instead of current working directory.
+        # This makes model loading stable when app is launched from another folder.
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
 class FaceAnalyzer:
