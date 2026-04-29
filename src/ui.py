@@ -43,7 +43,8 @@ class AgeScannerApp:
             self.analyzer = FaceAnalyzer()
             self.root.after(0, self._on_engine_ready)
         except Exception as e:
-            self.root.after(0, lambda: messagebox.showerror("Ошибка загрузки", f"Не удалось загрузить модели: {e}"))
+            err_msg = f"Не удалось загрузить модели: {e}"
+            self.root.after(0, lambda msg=err_msg: messagebox.showerror("Ошибка загрузки", msg))
 
     def _setup_ui(self):
         # Header
@@ -200,7 +201,8 @@ class AgeScannerApp:
                 results_to_show = self._camera_last_results
                 self.root.after(0, lambda f=annotated_to_show, r=results_to_show: self._display_camera_frame(f, r))
         except Exception as e:
-            self.root.after(0, lambda: messagebox.showerror("Ошибка камеры", str(e)))
+            err_msg = str(e)
+            self.root.after(0, lambda msg=err_msg: messagebox.showerror("Ошибка камеры", msg))
         finally:
             self.root.after(0, self._stop_camera)
 
@@ -227,7 +229,8 @@ class AgeScannerApp:
             
             self.root.after(0, lambda: self._display_result(annotated, results))
         except Exception as e:
-            self.root.after(0, lambda: self._on_error(str(e)))
+            err_msg = str(e)
+            self.root.after(0, lambda msg=err_msg: self._on_error(msg))
 
     def _read_image_safe(self, path):
         """Read image robustly on Windows paths with non-ASCII characters."""
