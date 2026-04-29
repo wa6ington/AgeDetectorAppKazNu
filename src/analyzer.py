@@ -40,9 +40,30 @@ class FaceAnalyzer:
         self.age_proto = get_resource_path("assets/age_deploy.prototxt")
         self.age_model = get_resource_path("assets/age_net.caffemodel")
         
-        # Load networks
-        self.face_net = cv2.dnn.readNet(self.face_model, self.face_proto)
-        self.age_net = cv2.dnn.readNet(self.age_model, self.age_proto)
+        self._validate_model_files()
+
+        # Load networks with explicit loaders for better cross-machine compatibility.
+        try:
+            self.face_net = cv2.dnn.readNetFromTensorflow(self.face_model, self.face_proto)
+        except Exception:
+            self.face_net = cv2.dnn.readNet(self.face_model, self.face_proto)
+
+        try:
+            self.age_net = cv2.dnn.readNetFromCaffe(self.age_proto, self.age_model)
+        except Exception:
+            self.age_net = cv2.dnn.readNet(self.age_model, self.age_proto)
+
+    def _validate_model_files(self):
+        required = [
+            self.face_proto,
+            self.face_model,
+            self.age_proto,
+            self.age_model,
+        ]
+        missing = [p for p in required if not os.path.exists(p)]
+        if missing:
+            pretty = "\n".join(missing)
+            raise FileNotFoundError(f"Не найдены файлы моделей:\n{pretty}")
 
     def _normalize_probs(self, probs):
         probs = np.asarray(probs, dtype=np.float64).reshape(-1)
